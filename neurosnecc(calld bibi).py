@@ -3,6 +3,7 @@ import random
 import json
 import numpy as np
 import keyboard
+import copy
 
 
 i = 28
@@ -24,28 +25,61 @@ while 1:
 
     
 
-    '''it's for rewrite bibis mind (also that is great codeswitch system here, just remowe or add   # before """)
+
+
+    bibis_mind = open('bibis_mind.json', 'r')
+    xlist_jsn = bibis_mind.read()
+
+    bibis_mind.close()
+
+    if not(xlist_jsn):
+
+        xlist = []
+        gen = 1
+        for x in range(4):
+            ylist = []
+            for y in range(int(j/2)):
+                zlist = []
+                for z in range(int(i/2)):
+                    zlist.append(2*(0.5 - random.random()))
+                ylist.append(zlist)
+            xlist.append(ylist)
+
+        
+
+    else:
+        xlist_jsn = json.loads(xlist_jsn)
+        xlist = xlist_jsn[1]
+        for x in xlist:
+            gen = xlist_jsn[2]
+            print(len(x))
+            for y in x:
+                print(len(y))
+                for z in y:
+                    z += 2*(1/gen)*(0.5 - random.random())
+    qlist = copy.deepcopy(xlist)
+
+    for x in xlist:
+        for y in x:
+            z = y.copy()
+            z.reverse()
+            y.extend(z)
+        k = x.copy()
+        k.reverse()
+        x.extend(k)
+    
     matr1 = []
-    for x in range(4):
-        prematr = []
-        for y in range(i*j):
-            prematr.append(random.random())
-        matr1.append(prematr)
     
-    bibis_mind = json.dumps(matr1)
-    
-    f = open('bibis_mind.json', 'w')
-    
-    f.write(bibis_mind)
-    
-    f.close()
-    '''
-    
-    f = open('bibis_mind.json', 'r')
-    bibis_mind = f.read()
-    
-    matr1 = json.loads(bibis_mind)
-    #and it for read bibis mind '''
+    for x in xlist:
+        extendlist = []
+        for y in x:
+            extendlist.extend(y)
+        matr1.append(extendlist)
+
+
+
+
+
     matr1 = np.array(matr1)
         
     
@@ -59,8 +93,14 @@ while 1:
         
     print('\n' * 20)
     
-    
+  
+    exp = 100
+
+    repeat = 448
+
     while 1:
+        
+
         
         a = [' '] * i                                #создание карты, цикл создания разных списков
         map1 = [] ; k = j
@@ -85,7 +125,7 @@ while 1:
         
         matr2 = []
         for x in map1:
-            for y in x:
+            for y in x:                             #преобразование карты для входа нейросети
                 if y == ' ':
                     matr2.append(0)
                 elif y == '#':
@@ -102,6 +142,8 @@ while 1:
     
         if point == snecc:                           #обозначение яблока на карте
             tail.append(point.copy())
+            exp += 100
+            repeat = 448
             while 1:
                 point = [random.randint(0,j-1),random.randint(0,i-1)]
                 if tuple(point) in tail or point == snecc:
@@ -115,7 +157,7 @@ while 1:
             score = score - 1
         tail[0] = tuple(snecc)
         
-        time.sleep(0.17)
+        time.sleep(0.03)
     
     
         if matans.index(max(matans)) == 0 and move != 'w':                 
@@ -137,12 +179,39 @@ while 1:
         mov()
                 
         if tuple(snecc) in tail:                    #если врезаешся в хвост проигрываешь
+            exp += -100
             break
         if snecc[0] < 0 or snecc[0] > j-1 or snecc[1] < 0 or snecc[1] > i-1:
+            exp += -100
             break
         if keyboard.is_pressed('q'):
+            exp += -100
             break
+        if not(repeat):
+            exp += -100
+            break
+        repeat += -1
+            
 
+    allmatr.append([exp,qlist])
+    print(len(qlist))
+    if len(allmatr) == 1000:
+        gen += 1
+        best = allmatr[0][0]
+        bestmatr = []
+        for x in allmatr:
+            if x[0] >= best:
+                best = x[0]
+                bestmatr = x
 
-    
-    print('\n\n##############################\n# seems like the game is over#\n##############################\n\n')
+        bestmatr.append(gen)
+
+        bibis_mind = open('bibis_mind.json', 'w')
+        bibis_mind.write(json.dumps(bestmatr))
+        bibis_mind.close()
+
+        print(len(bestmatr[1]), len(bestmatr[1][0]))
+        print(bestmatr[0],bestmatr[2])
+        break
+#    print(exp)
+#    print('\n\n##############################\n# seems like the game is over#\n##############################\n\n')

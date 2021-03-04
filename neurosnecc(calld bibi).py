@@ -157,7 +157,7 @@ while 1:
             score = score - 1
         tail[0] = tuple(snecc)
         
-        time.sleep(0.03)
+#        time.sleep(0.03)
     
     
         if matans.index(max(matans)) == 0 and move != 'w':                 
